@@ -6,6 +6,9 @@
 #define MAX(a,b)            (((a) > (b)) ? (a) : (b))
 #define MAXIMO_FACTOR_DE_CARGA 0.75
 #define FACTOR_DE_CARGA(cantidad_elementos,buckets)   ((cantidad_elementos+1)/buckets)
+#define LISTA_VACIA 99
+typedef enum { false, true } bool;
+
 
 /**
 ACOTACIONES GENERALES PARA LA IMPLEMENTACION DE MAPEO.C
@@ -45,7 +48,7 @@ void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(v
     if(m == NULL){
 		exit(MAP_ERROR_MEMORIA);
     }
-	tLista mapeo[maximo];
+    tLista * mapeo = (tLista*) malloc(sizeof (tLista) * maximo);
 	for (int i = 0; i<maximo; i++){
 	    crear_lista(&mapeo[i]);
 	}
@@ -54,6 +57,17 @@ void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(v
 	(*m)->cantidad_elementos = 0;
     (*m)->hash_code = fHash;
     (*m)->comparador = fComparacion;
+}
+
+
+static tEntrada crear_entrada (tClave c, tValor v){
+    tEntrada nueva_entrada = (tEntrada) malloc(sizeof(struct entrada));
+    if(nueva_entrada == NULL){
+        exit(MAP_ERROR_MEMORIA);
+    }
+    nueva_entrada->clave = c;
+    nueva_entrada->valor = v;
+    return nueva_entrada;
 }
 
 /**
@@ -86,42 +100,150 @@ Si no esta vacia, vemos si esa clave esta presente en la lista de ese TablaHash[
  el
 
 **/
-
+/**TO DO: Terminar de corregir el caso en el que caemos a una lista no vacia
+          falta testear el funcionamiento de toda la funcion,
+*/
 tValor m_insertar(tMapeo m, tClave c, tValor v){
-    int indice = m->hash_code(c);
-    tLista * listaActual = m->tabla_hash[indice];
+    printf("Adentro de insertar\n");
+    printf("Longitud de tabla es  %i \n", m->longitud_tabla);
+    int indice = (m->hash_code(c)) % (m->longitud_tabla);
+    printf("Indice obtenido %i \n", indice);
+
+    tLista * listaAux = (m->tabla_hash); //recupero EL ARREGLO, que es lo mismo que recuperar el tablaHash[0], alias el puntero a la primer lista
+
+    int factor_actual = FACTOR_DE_CARGA(m->cantidad_elementos, m->longitud_tabla);
+    printf("Factor actual de carga  %i \n", factor_actual);
+    tEntrada nueva_entrada;
+    tValor valor_result = NULL;
+
+    tLista listaActual = *(listaAux+indice);//con aritmetica de punteros, incremento el puntero"listaAux" para que me apunte a la lista que quiero manipular
+
+    printf("La longitud de la lista, antes de insertar es %i\n", l_longitud(listaActual));
+
     if(l_longitud(listaActual) == 0){
-        if(FACTOR_DE_CARGA(m->cantidad_elementos,m->longitud_tabla)>MAXIMO_FACTOR_DE_CARGA){
-            return rehash(m, c, v);
+        printf("Caso de una lista vacia\n");
+        if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
+            printf("Rehash con lista vacia\n");
+            //rehash
         }
-        else{
-            tEntrada nueva_entrada = (tEntrada) malloc(sizeof(struct entrada));
-            if(nueva_entrada == NULL){
-	            exit(MAP_ERROR_MEMORIA);
-            }
-            nueva_entrada->clave = c;
-            nueva_entrada->valor = v;
-            l_insertar(listaActual, l_primera(listaActual), nueva_entrada);
-            return NULL;
-        }
+        nueva_entrada = crear_entrada(c, v);
+        printf("Creamos una nueva entrada\n");
+
+        l_insertar(listaActual, l_primera(listaActual),nueva_entrada);
+        printf("Acabamos de insertar en la lista\n");
+        printf("La cantidad de elementos de la lista, luego de insertar es %i\n", l_longitud(listaActual));
+
+        m->cantidad_elementos++;
+        printf("La cantidad de elementos del mapeo, luego de insertar es %i\n", m->cantidad_elementos);
+
     }else{
-
+        printf("Caso de lista no vacia\n");
+        valor_result = m_recuperar(m,c);
+        if(valor_result != NULL){ //OJO ---------------------------------------
+            valor_result = v; //OJO ---------------------------------------
+        }else {
+            if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
+                //rehash
+            }
+            nueva_entrada = crear_entrada(c, v);
+            l_insertar(listaActual, l_primera(listaActual),nueva_entrada);
+            m->cantidad_elementos++;
+            printf("EEEEE\n");
+        }
     }
+    printf ("END Insertar\n");
+    return valor_result;
 }
 
+static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
+    bool elemento_pertenece = false;
+    tPosicion posicion = l_primera(lista);
+    tEntrada elem = NULL;
+
+    int size = l_longitud(lista);
+    int cantidad = 0;
+
+    tClave clave_recuperada = ((tEntrada) l_recuperar(lista, posicion))->clave;
+
+    // tClave clave_recuperada = (posicion->elemento)->clave; // MAL
+
+    while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
+        //elem = (tEntrada) l_siguiente(lista, posicion);
+        elem = l_recuperar(lista , l_siguiente(lista , posicion));
+        clave_recuperada = elem->clave;
+        cantidad++;
+    }
+
+    if((m->comparador(clave_recuperada,c) != 0)){
+        posicion = NULL;
+    }
+
+    return posicion;
 }
 
+static void rehash(tMapeo mapeo){
+    int nueva_dimension = proximo_primo(mapeo->longitud_tabla*2+1);
+    int tamano_anterior = mapeo->longitud_tabla;
+    tLista * arreglo_anterior = mapeo->tabla_hash;
+    tLista  lista_anterior;
+    tLista  pos_original;
+    tLista pos_aux;
+    tEntrada entrada;
+    int posicion;
+    //Creo nuevo arreglo
+    mapeo->tabla_hash = malloc(sizeof (tLista) * nueva_dimension);
+    for(int i = 0; i<nueva_dimension; i++){
+        //Inicializamos el nuevo arreglo
+	    crear_lista(&crear_lista(mapeo->tabla_hash[i]));
+    }
+    m->longitud = nueva_dimension;
 
+   for(int i = 0; i<tamano_anterior; i++){
+       lista_anterior = arreglo_anterior[i];
+       //Por cada bucket del arreglo anterior se verifica ese bucket pasando toda la información a su nuevo hash.
+       if(l_longitud(lista_anterior)>0){
+           pos_original = l_primera(lista_anterior);
+            //Mientras la lista tenga elementos
+           while(pos_original!=NULL){
+               //Lo agregamos
+               entrada = l_recuperar(lista_anterior,pos_original);
+               posicion = hash_code(m->clave);
+               //Se guarda en un auxiliar el siguiente en caso de que tenga
+               l_insertar(mapeo->tabla_hash[posicion],l_fin(mapeo->tabla_hash[posicion]),entrada);
+               if(pos_original == l_fin(lista_anterior))
+                    pos_aux = NULL;
+               else
+                    pos_aux = l_siguiente(lista_anterior,pos_original);
+                //Se remueve de la lista original
+                l_eliminar(lista_anterior,pos_original);
+                //Se referencia al siguiente del eliminado.
+                pos_original = pos_aux;
+           }
+       }
+   }
+}
 
+static int proximo_primo(int numero){
+    bool es_primo = false;
+    int numero_a_probar = numero;
+    while(!es_primo){
+        numero_a_probar++;
+        es_primo = es_primo(numero_a_probar);
+    }
+    return numero_a_probar;
+}
 
-
-
-
-
-
-
-
-
+static int es_primo (int numero){
+    bool es_primo = true;
+    int contador = 2;
+    while (es_primo && contador != numero){
+        if (numero %contador == numero){
+            es_primo = false;
+        }
+        contador++;
+    }
+    return es_primo;
+}
 
 //----------------------------------------------------------------------------------
 /**
@@ -129,7 +251,13 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
  La clave y el valor de la entrada son eliminados mediante las funciones fEliminarC y fEliminarV.
 **/
 void m_eliminar(tMapeo m, tClave c, void (*fEliminarC)(void *), void (*fEliminarV)(void *)){
+    int indice = m->hash_code(c);
+    tLista * lista_actual = m->tabla_hash[indice];
+    tEntrada entrada = ((tEntrada) l_recuperar(lista_actual, buscar_Elemento(*lista_actual,c,m)));
+    fEliminarC(entrada->clave);
+    fEliminarV(entrada->valor);
 
+    l_eliminar(*lista_actual,)
 }
 
 /**
@@ -144,6 +272,10 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
  Recupera el valor correspondiente a la entrada con clave C en M, si esta existe.
  Retorna el valor correspondiente, o NULL en caso contrario.
 **/
-tValor m_recuperar(tMapeo m, tClave c){
-    return 0;
+
+tValor m_recuperar(tMapeo m , tClave c){
+    int indice = m->hash_code(c);
+    tLista * lista_actual = m->tabla_hash[indice];
+    tEntrada result = ((tEntrada) l_recuperar(lista_actual, buscar_Elemento(*lista_actual,c,m)));// no convendria que buscar_elem, devuelva una tEntrada?
+    return result->valor;
 }

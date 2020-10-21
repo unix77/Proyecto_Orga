@@ -15,12 +15,14 @@
 int mStringHashDJB2(void *p){
     char * string = p;
     printf("El string es %s \n",string);
+    /*
     unsigned long hash = 5381;
     int c;
-    while (c = (*string)++){//le asigno a c, string[0] al inicio, y voy incrementando
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    while ((c = (*string)++)){//le asigno a c, string[0] al inicio, y voy incrementando
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c
     }
-    return hash;
+    */
+    return ((int)strlen(p));
 }
 
 /**
@@ -32,13 +34,13 @@ int mStringHashDJB2(void *p){
  *                   -> -1 en caso contrario
 */
 int mStringComparador(void *e1, void *e2){
-   return (strcmp(e1,e2));
+   return (strcmp(e1,e2)==0);
 }
 
 void fEliminar(tElemento e){
     free(e);
 }
-
+/*
 void print_list(tLista l){
     if(l == NULL){
         printf("La lista esta vacia\n");
@@ -53,9 +55,11 @@ void print_list(tLista l){
     }
     printf("Imprimi toda la lista\n");
 }
-
+*/
 int main()
 {
+
+    /*
     printf("Creo una nueva lista\n");
     tLista new_list;
     crear_lista(&new_list);
@@ -76,16 +80,16 @@ int main()
 
     l_destruir(&new_list,&fEliminar);
     print_list(new_list);
+*/
     //------------------------------------------------------------
     //Map tester
-    printf("El size del struct mapeo en memoria es %i \n", sizeof(struct mapeo));
     printf("Creo una nuevo mapeo\n");
     tMapeo new_map;
     crear_mapeo(&new_map, 11, &mStringHashDJB2, &mStringComparador);
     printf("El size del mapeo es %i\n", sizeof(*new_map));
 
     printf("Longitud del map es %i\n", (new_map->longitud_tabla));
-
+    /*
     char z[100] = "asd";
     //printf("El valor con hashDJB2 es %i\n" , (hashDJB2(z) % (new_map->longitud_tabla)));
 
@@ -94,5 +98,44 @@ int main()
     char * a = "asd";
     char * b = "asd";
     printf("Los 2 strings son %i\n",mStringComparador(a,b));
+*/
+    printf("Insertamos 3 entradas\n");
+/*
+    char i1 = '1';
+    char i2 = '2';
+    char i3 = '3';
+*/
 
+    char * clave1 = "cardo";
+    char * clave2 = "asd";
+    char * clave3 = "dk";
+/*
+    char  v1 = 'A';
+    char  v2 = 'B';
+    char  v3 = 'C';
+*/
+    char * vv1 = "wqewq";
+    char * vv2 = "dim";
+    char * vv3 = "poi";
+
+    m_insertar(new_map,clave1,vv1);
+    printf("valor 1:  %s\n", (char*)m_recuperar(new_map,"cardo"));
+
+    m_insertar(new_map,vv2,clave2);
+    m_insertar(new_map,vv3,clave3);
+
+    printf("El size del mapeo es %i\n", sizeof(*new_map));
+    printf("Longitud del map es %i\n", (new_map->longitud_tabla));
+
+/*
+    tValor valor1 = m_recuperar(new_map,clave1);
+
+    printf("valor 1:  %s\n", (char*)(valor1));
+    tValor valor2 = m_recuperar(new_map,clave2);
+
+    printf("valor 2:  %s\n",(char*)(valor2));
+    tValor valor3 = m_recuperar(new_map,clave3);
+
+    printf("valor 13:  %s\n", (char*)(valor3));
+*/
 }
