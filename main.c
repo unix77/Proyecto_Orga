@@ -14,7 +14,6 @@
  */
 int mStringHashDJB2(void *p){
     char * string = p;
-    printf("El string es %s \n",string);
     /*
     unsigned long hash = 5381;
     int c;
@@ -34,7 +33,7 @@ int mStringHashDJB2(void *p){
  *                   -> -1 en caso contrario
 */
 int mStringComparador(void *e1, void *e2){
-   return (strcmp(e1,e2)==0);
+   return (strcmp(e1,e2));
 }
 
 void fEliminar(tElemento e){
@@ -86,9 +85,8 @@ int main()
     printf("Creo una nuevo mapeo\n");
     tMapeo new_map;
     crear_mapeo(&new_map, 11, &mStringHashDJB2, &mStringComparador);
-    printf("El size del mapeo es %i\n", sizeof(*new_map));
 
-    printf("Longitud del map es %i\n", (new_map->longitud_tabla));
+    printf("Longitud de la tabla hash es %i\n", (new_map->longitud_tabla));
     /*
     char z[100] = "asd";
     //printf("El valor con hashDJB2 es %i\n" , (hashDJB2(z) % (new_map->longitud_tabla)));
@@ -99,35 +97,39 @@ int main()
     char * b = "asd";
     printf("Los 2 strings son %i\n",mStringComparador(a,b));
 */
-    printf("Insertamos 3 entradas\n");
 /*
+    printf("Insertamos 3 entradas\n");
+
     char i1 = '1';
     char i2 = '2';
     char i3 = '3';
-*/
 
-    char * clave1 = "cardo";
-    char * clave2 = "asd";
+
+    char * clave = "cardo";
+    char clave2 = "asd";
     char * clave3 = "dk";
-/*
-    char  v1 = 'A';
-    char  v2 = 'B';
-    char  v3 = 'C';
-*/
+
     char * vv1 = "wqewq";
-    char * vv2 = "dim";
+    char vv2 = "dim";
     char * vv3 = "poi";
 
+
+    /*
     m_insertar(new_map,clave1,vv1);
     printf("valor 1:  %s\n", (char*)m_recuperar(new_map,"cardo"));
 
-    m_insertar(new_map,vv2,clave2);
+
+
+
+
+    m_insertar(new_map,&clave2,&vv2);
+    printf("valor 2:  %s\n", (char*)m_recuperar(new_map,"asd"));
+
     m_insertar(new_map,vv3,clave3);
 
     printf("El size del mapeo es %i\n", sizeof(*new_map));
     printf("Longitud del map es %i\n", (new_map->longitud_tabla));
 
-/*
     tValor valor1 = m_recuperar(new_map,clave1);
 
     printf("valor 1:  %s\n", (char*)(valor1));
@@ -138,4 +140,34 @@ int main()
 
     printf("valor 13:  %s\n", (char*)(valor3));
 */
+    /** cada vez q inserto, tengo q hacer malloc
+    declaro un puntero a char y otro a int
+    */
+
+    char * clave;
+    char * valor;
+
+    clave = (char*) malloc(sizeof(char)*4);
+    valor = (char*) malloc(sizeof(float)*4);
+
+    //*clave = "hola";
+    //*valor = "chau";
+
+    strcpy(clave,"hola");
+    strcpy(valor,"chau");
+
+    m_insertar(new_map, clave, valor);
+
+    printf("valor con malloc es:  %s\n", (char*)m_recuperar(new_map,"hola"));
+
+    strcpy(clave,"asd");
+    strcpy(valor,"qwe");
+
+    m_insertar(new_map, clave, valor);
+
+    printf("valor con malloc es:  %s\n", (char*)m_recuperar(new_map,"asd"));
+
+
+
+
 }
