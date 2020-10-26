@@ -12,17 +12,19 @@
  *
  * Return: entero entre [0...map_array_size]
  */
-int mStringHashDJB2(void *p){
+int mStringHashDJB2(void * p){//antes era int mStringHashDJB2(void *p)
+    int g = 31;
+    int longitud = strlen(p);
+    int result = 0;
     char * string = p;
-    /*
-    unsigned long hash = 5381;
-    int c;
-    while ((c = (*string)++)){//le asigno a c, string[0] al inicio, y voy incrementando
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c
+
+    for(int i = 0 ; i < longitud ; i++){
+        result = g * result + string[i];
     }
-    */
-    return ((int)strlen(p));
+
+    return result;
 }
+
 
 /**
  * Funcion mStringComparador
@@ -39,25 +41,107 @@ int mStringComparador(void *e1, void *e2){
 void fEliminar(tElemento e){
     free(e);
 }
-/*
-void print_list(tLista l){
+
+void fEliminarC(tClave c){
+    printf("Adentro de fEliminarC\n");
+    free(c);
+}
+
+void fEliminarV(tValor v){
+    free(v);
+}
+
+
+
+
+void print_list(tLista l, int i){
     if(l == NULL){
-        printf("La lista esta vacia\n");
+        printf("La lista es invalida\n");
         exit(LISTA_VACIA);
     }
-    tPosicion p = l_primera(l);
-    int * temp;
-    while(p != l_fin(l)){
-        temp = l_recuperar(l, p);
-        printf("%i \n",*temp);
-        p = l_siguiente(l, p);
+    printf("Lista %i:\n", i);
+    int longitud_lista = l_longitud(l);
+    if(longitud_lista != 0){
+        tPosicion first = l_primera(l);
+        tPosicion last = l_fin(l);
+        tEntrada entrada;
+        while(first != last){
+            entrada = (tEntrada)l_recuperar(l, first);
+            printf("clave %s , valor %i \n",(char*)entrada->clave, *(int*)entrada->valor);
+            first = l_siguiente(l, first);
+        }
     }
-    printf("Imprimi toda la lista\n");
+    else{
+        printf("La lista esta vacia\n");
+    }
+    printf("\n");
 }
-*/
+
+void print_map(tMapeo m){
+    printf("Mapeo :\n");
+    tLista * tabla = m->tabla_hash;
+    int size_tabla = m->longitud_tabla;
+    tLista lista_actual = NULL;
+    for(int i = 0; i< size_tabla ; i++){
+        lista_actual = tabla[i];
+        print_list(lista_actual,i);
+    }
+    printf("FIN DE MAPEO\n");
+}
+/*
+void crear_CV(tClave * c, tValor * v){
+    printf("Creando clave y valor\n");
+
+    //creo 2 variables que se destruiran una vez que termine su funcionamiento esta funcion
+    char key [50];
+    int * value = NULL;
+
+    //reservo memoria para la clave y el valor
+    *c = (char*) malloc(sizeof(char)*50);
+    *v = (int*) malloc(sizeof(int));
+
+
+    printf("Ingrese una clave \n");
+    scanf("%s ",key);
+    printf("Key guarda %s \n", key);
+
+    //strcpy(*c,key);//guardo en la memoria dinamica, el contenido de los strings temporales (key, value)
+
+
+    printf("Ingrese un valor \n");
+    scanf("%i ",value);
+    *v = value;
+
+    printf("Fin de la creacion de clave y valor\n");
+}*/
+
+void registrar(tClave * c, tValor * v){
+    char * key = NULL;
+    int * value = NULL;
+
+    key = (char*)malloc(sizeof(char)*50);
+    value = (int*)malloc(sizeof(int));
+
+    printf("Ingrese una clave\n");
+    scanf("%s", key);
+
+    /*
+    printf("Ingrese un valor\n");
+    scanf("%i", value);
+    */
+
+    *value = 1;
+
+    *c = key;
+    *v = value;
+
+    printf("Fin de registrar\n");
+}
+
+
+
 int main()
 {
-
     /*
     printf("Creo una nueva lista\n");
     tLista new_list;
@@ -82,11 +166,7 @@ int main()
 */
     //------------------------------------------------------------
     //Map tester
-    printf("Creo una nuevo mapeo\n");
-    tMapeo new_map;
-    crear_mapeo(&new_map, 11, &mStringHashDJB2, &mStringComparador);
 
-    printf("Longitud de la tabla hash es %i\n", (new_map->longitud_tabla));
     /*
     char z[100] = "asd";
     //printf("El valor con hashDJB2 es %i\n" , (hashDJB2(z) % (new_map->longitud_tabla)));
@@ -143,12 +223,17 @@ int main()
     /** cada vez q inserto, tengo q hacer malloc
     declaro un puntero a char y otro a int
     */
+/*
+    printf("Creo una nuevo mapeo\n");
+    tMapeo new_map;
+    crear_mapeo(&new_map, 11, &mStringHashDJB2, &mStringComparador);
 
+    printf("Longitud de la tabla hash es %i\n", (new_map->longitud_tabla));
     char * clave;
     char * valor;
 
-    clave = (char*) malloc(sizeof(char)*4);
-    valor = (char*) malloc(sizeof(float)*4);
+    clave = (char*) malloc(sizeof(char)*50);
+    valor = (char*) malloc(sizeof(char)*50);
 
     //*clave = "hola";
     //*valor = "chau";
@@ -156,17 +241,80 @@ int main()
     strcpy(clave,"hola");
     strcpy(valor,"chau");
 
+
     m_insertar(new_map, clave, valor);
 
-    printf("valor con malloc es:  %s\n", (char*)m_recuperar(new_map,"hola"));
+    printf("Imprimo el mapeo despues de insertar\n");
+    print_map(new_map);
+
 
     strcpy(clave,"asd");
     strcpy(valor,"qwe");
 
     m_insertar(new_map, clave, valor);
 
-    printf("valor con malloc es:  %s\n", (char*)m_recuperar(new_map,"asd"));
+    printf("Imprimo el mapeo despues de insertar\n");
+    print_map(new_map);
 
+
+    printf("valor con malloc es:  %s\n", (char*)m_recuperar(new_map,clave));
+
+    printf("Longitud del mapeo es %i\n", (new_map->cantidad_elementos));
+
+    printf("La clave afuera, ANTES DE ELIMINAR es %s \n", (char*)clave);
+
+    printf("Su hash code, ANTES DE ELIMINAR es %i \n", mStringHashDJB2(clave)%11);
+    m_eliminar(new_map, clave, &fEliminarC, &fEliminarV);
+
+    printf("Longitud del mapeo despues de eliminar es %i\n", (new_map->cantidad_elementos));
+
+    printf("Imprimo el mapeo despues de ELIMINAR\n");
+    print_map(new_map);
+
+     m_eliminar(new_map, "hola", &fEliminarC, &fEliminarV);
+
+     printf("Imprimo el mapeo despues de ELIMINAR\n");
+    print_map(new_map);
+*/
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    printf("Creo una nuevo mapeo\n");
+    tMapeo map;
+    crear_mapeo(&map, 11, &mStringHashDJB2, &mStringComparador);
+
+    print_map(map);
+
+    printf("Longitud de la tabla hash es %i\n", (map->longitud_tabla));
+    void * key;
+    void * value;
+
+    registrar(&key, &value);
+    //print_map(map);
+
+    printf("*c es %s \n", (char*)key);
+    printf("*v es %i \n",*(int*)value);
+
+    m_insertar(map, key, value);
+
+    registrar(&key, &value);
+    //print_map(map);
+
+
+    printf("*c es %s \n", (char*)key);
+    printf("*v es %i \n",*(int*)value);
+
+    m_insertar(map, key, value);
+
+    print_map(map);
+
+    /*
+    m_eliminar(map, "vane", &fEliminarC, &fEliminarV);
+
+    print_map(map);
+    */
+
+    m_destruir(&map, &fEliminarC, &fEliminarV);
+
+    print_map(map);
 
 
 

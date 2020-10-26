@@ -10,6 +10,10 @@
 typedef enum { false, true } bool;
 
 
+void (*fEliminarCGlobal)(void *);
+void (*fEliminarVGlobal)(void *);
+
+
 /**
 ACOTACIONES GENERALES PARA LA IMPLEMENTACION DE MAPEO.C
 
@@ -72,7 +76,6 @@ static tEntrada crear_entrada (tClave c, tValor v){
 
 static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
     printf("Adentro de buscar elemento\n");
-    bool elemento_pertenece = false;
     tPosicion posicion = l_primera(lista);
     tEntrada elem = NULL;
 
@@ -82,16 +85,20 @@ static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
     tClave clave_recuperada = ((tEntrada) l_recuperar(lista, posicion))->clave;// agarro la entrada de esa pos, y recupero su clave
     //printf("La clave recuperada es %s\n", (char*)clave_recuperada);
     while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
+
+        printf("Adentro del while\n");
+
         //elem = (tEntrada) l_siguiente(lista, posicion);
         elem = l_recuperar(lista , l_siguiente(lista , posicion));
         clave_recuperada = elem->clave;
         cantidad++;
+
     }
 
     if((m->comparador(clave_recuperada,c) != 0)){
         posicion = NULL;
     }
-
+    printf("END de buscar elemento\n");
     return posicion;
 }
 
@@ -198,8 +205,11 @@ Si no esta vacia, vemos si esa clave esta presente en la lista de ese TablaHash[
           falta testear el funcionamiento de toda la funcion,
 */
 tValor m_insertar(tMapeo m, tClave c, tValor v){
+    /*
     printf("Adentro de insertar\n");
+    printf("Adentro de insertar la clave  es %s \n",(char*)c);*/
     int indice = (m->hash_code(c)) % (m->longitud_tabla);
+    printf("Adentro de insertar indice es %i \n",indice);
     tPosicion posAux = NULL;
     tEntrada entradaAux = NULL;
 
@@ -255,35 +265,115 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
     return valor_result;
 }
 
+
+//CONSULTAR PORQUE NO DEBE SER STATIC
+void fEliminarContenedor(void * entrada){
+    printf("Inicio de Eliminar Contenedor\n");
+    tEntrada entrada_a_eliminar = (tEntrada) entrada;
+    free(entrada_a_eliminar);
+}
+
+
+
 //----------------------------------------------------------------------------------
 /**
  Elimina la entrada con clave C en M, si esta existe.
  La clave y el valor de la entrada son eliminados mediante las funciones fEliminarC y fEliminarV.
 **/
-/*
-void m_eliminar(tMapeo m, tClave c, void (*fEliminarC)(void *), void (*fEliminarV)(void *)){
-    int indice = m->hash_code(c);
+void m_eliminar(tMapeo m, tClave c, void (*fEliminarC)(void*), void (*fEliminarV)(void*)){
+    printf("Inicio de elimnar de mapeo\n");
+
+    int indice = m->hash_code(c) % (m->longitud_tabla);
+
     tLista lista_actual = m->tabla_hash[indice];
-    tPosicion posicion = buscar_Elemento(*lista_actual,c,m);
+
+    printf("Obtuve la lista\n");
+    printf("La longitud de la lista es %i \n", l_longitud(lista_actual));
+
+    tPosicion posicion = buscar_Elemento(lista_actual,c,m);
+    printf("Obtuve la posicion en la que esta la entrada\n");
+
+    tEntrada entrada;
     if(posicion!=NULL){
-        tEntrada entrada = (tEntrada) l_recuperar(*lista_actual, posicion);
+        entrada = (tEntrada) l_recuperar(lista_actual, posicion);
+        printf("Recupere la entrada de la posicion\n");
+
+        printf("su clave es %s\n", (char*)entrada->clave);
+        printf("su valor es %s\n", (char*)entrada->valor);
+
         fEliminarC(entrada->clave);
         fEliminarV(entrada->valor);
-        l_eliminar(*lista_actual,posicion, .......................................................................);
+
+        entrada->clave = NULL;
+        entrada->valor = NULL;
+
+        l_eliminar(lista_actual,posicion, fEliminarContenedor);
+        m->cantidad_elementos--;
     }
 }
-*/
+
+static void fEliminarEntrada (tElemento elemento){
+    printf("Adentro de eliminar entrada\n");
+    tEntrada entrada = (tEntrada) elemento;
+    printf("Atroden de eliminarEntrada AAAAA\n");
+
+    fEliminarCGlobal(entrada->clave);
+    printf("Atroden de eliminarEntrada BBBBB\n");
+
+    fEliminarVGlobal(entrada->valor);
+    printf("Atroden de eliminarEntrada CCCCC\n");
+
+    free(entrada);
+    printf("END de fEliminar Entrada\n");
+
+}
+
 /**
  Destruye el mapeo M, elimininando cada una de sus entradas.
  Las claves y valores almacenados en las entradas son eliminados mediante las funciones fEliminarC y fEliminarV.
-**//*
+**/
 void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void *)){
-    //free y bla bla bla
-    for(int i=0; i<m->longitud_tabla;i++){
-        l_destruir(m->tabla_hash[i]);
+    ///.............
+    tEntrada aux = NULL;
+    ///.............
+    printf("Inicio de destruir MAP\n");
+    tLista lista_actual = NULL;
+
+
+    fEliminarCGlobal = fEliminarC;
+    fEliminarVGlobal = fEliminarV;
+
+    int longitud = (*m)->longitud_tabla;
+    printf("La longitud del mapeo es %i \n",longitud);
+
+    printf("AAAAAAAAAAAAAAAAAAAAAA\n");
+
+
+
+
+    for(int i=0; i< longitud;i++){
+        printf("BBBBBBBBBBBBBBB\n");
+        lista_actual = (*m)->tabla_hash[i];
+        printf("La longitud de la lista actual es %i \n", l_longitud(lista_actual));
+        printf("CCCCCCCCCCCCCCCC\n");
+
+        ///.........................................................................................................................................///
+        for(int j = 0 ; j < l_longitud(lista_actual); j ++){}
+            aux =
+            m_eliminar((*m),)
+
+        }
+        ///.............................................................................................................................................
+
+        l_destruir(&lista_actual, &fEliminarEntrada);
+        printf("DDDDDDDDDDDDDDDDD\n");
     }
+    printf("Sali del for de destruir mapeo \n");
+    free((*m)->tabla_hash);
+    free(*m);
+    */
 }
-*/
+
 
 /**
  Recupera el valor correspondiente a la entrada con clave C en M, si esta existe.

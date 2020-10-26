@@ -131,10 +131,16 @@ extern void l_eliminar(tLista l, tPosicion p, void (*fEliminar)(tElemento)){
 extern void l_destruir(tLista * l, void (*fEliminar)(tElemento)){
     printf("Inicio de destruir\n");
     tLista aux = (*l);//lo apunto a la primer posicion (centinela)
+
     if(aux->siguiente == NULL){
+            printf("ZZZZZZZZZZZZ\n");
+
             fEliminar((*l)->elemento); // (es un free sobre un NULL, es como no hacer nada)
+            printf("XXXXXXXXXXXXXX\n");
             free((*l));     //libero la memoria donde esta la celda centinela en memoria
+            printf("CCCCCCCCCCCCC\n");
             (*l) = NULL;    //seteo el puntero a centinela, en NULL, porque ya no hay nada
+            printf("VVVVVVVVVVVVVVV\n");
             l = NULL;       //seteo el puntero que apunta a una puntero que apunta a una celda, en NULL
             printf("Fin de cb destruir\n");
     }
