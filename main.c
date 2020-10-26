@@ -51,9 +51,6 @@ void fEliminarV(tValor v){
     free(v);
 }
 
-
-
-
 void print_list(tLista l, int i){
     if(l == NULL){
         printf("La lista es invalida\n");
@@ -88,32 +85,6 @@ void print_map(tMapeo m){
     }
     printf("FIN DE MAPEO\n");
 }
-/*
-void crear_CV(tClave * c, tValor * v){
-    printf("Creando clave y valor\n");
-
-    //creo 2 variables que se destruiran una vez que termine su funcionamiento esta funcion
-    char key [50];
-    int * value = NULL;
-
-    //reservo memoria para la clave y el valor
-    *c = (char*) malloc(sizeof(char)*50);
-    *v = (int*) malloc(sizeof(int));
-
-
-    printf("Ingrese una clave \n");
-    scanf("%s ",key);
-    printf("Key guarda %s \n", key);
-
-    //strcpy(*c,key);//guardo en la memoria dinamica, el contenido de los strings temporales (key, value)
-
-
-    printf("Ingrese un valor \n");
-    scanf("%i ",value);
-    *v = value;
-
-    printf("Fin de la creacion de clave y valor\n");
-}*/
 
 void registrar(tClave * c, tValor * v){
     char * key = NULL;
@@ -125,11 +96,6 @@ void registrar(tClave * c, tValor * v){
     printf("Ingrese una clave\n");
     scanf("%s", key);
 
-    /*
-    printf("Ingrese un valor\n");
-    scanf("%i", value);
-    */
-
     *value = 1;
 
     *c = key;
@@ -138,9 +104,78 @@ void registrar(tClave * c, tValor * v){
     printf("Fin de registrar\n");
 }
 
+int increase(tValor v){
+    int result = *((int *)v);
+    return (result + 1);
+}
+
+static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
+     tMapeo mapeo;
+     char * palabra = NULL;
+     int * valor = NULL;
+     tValor valor_recuperado = NULL;
+
+    crear_mapeo(&mapeo,13,&mStringHashDJB2, &mStringComparador);
+    printf("dsadasdasdas \n");
+
+     FILE * file = fopen(ruta, "r");
+     printf("dsadsdsDs \n");
+     if (file) {
+        while (!feof(file)){//mientras no este al final del archivo
+            palabra = (char*)malloc(sizeof(char)*50); // por cada palabra leida se hace malloc
+            valor = (int*)malloc(sizeof(int));
+
+            fscanf(file, "%s",palabra);
+            printf("La palabra leida desde archivo es -%s- \n", palabra);
+
+            valor_recuperado = m_recuperar(mapeo,palabra);
+            //value =  valor_recuperado;
+            if(valor_recuperado!=NULL){// si el valor de antes no es
+                printf("El valor recuperado es %i \n", *(int*)valor_recuperado);
+                *valor = increase((int*)valor_recuperado);
+                printf("el valor nuevo que se insertara es %i \n",*(int*)valor);
+            }else{
+                *valor = 1;
+                printf("La clave que se insertara es %i \n", *(int*)valor);
+                printf("Acabamos de insertar por primera vez la palabra\n");
+            }
+            //cambio el contenido de los punteros por referencia, sino no anda nada !!
+            *c = palabra;
+            *v = valor;
+            m_insertar(mapeo,*c,*v);
+            printf("EL mapeo tiene %i elementos\n", mapeo->cantidad_elementos);
+            printf("\n");
+            printf("\n");
+            printf("\n");
+        }
+        fclose(file);
+    }
+    print_map(mapeo);
+    return mapeo;
+}
+
+static void recuperar_palabras(tMapeo mapeo){
+    char palabra[50];
+    //int * valor;
+    tValor cantidad_de_apariciones;
+    tClave clave;
+    printf("Ingrese la palabra que desea consultar: \n");
+    scanf(" %s",&palabra);
+    clave = &palabra;
+
+    //int  * valor = (int *)malloc(sizeof(int));
+
+    cantidad_de_apariciones = m_recuperar(mapeo,clave);
+    printf("AAAAAAAAAAAAAA\n");
+    if(cantidad_de_apariciones == NULL){
+        printf("La palabra %s aparece 0 veces",palabra);
+    }else{
+        printf("La palabra %s aparece %i veces",palabra,*(int*)cantidad_de_apariciones);
+    }
+}
 
 
-int main()
+int main(int argc, char *argv [])
 {
     /*
     printf("Creo una nueva lista\n");
@@ -275,7 +310,13 @@ int main()
 
      printf("Imprimo el mapeo despues de ELIMINAR\n");
     print_map(new_map);
-*/
+*//*
+
+
+
+
+
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     printf("Creo una nuevo mapeo\n");
     tMapeo map;
@@ -298,7 +339,6 @@ int main()
     registrar(&key, &value);
     //print_map(map);
 
-
     printf("*c es %s \n", (char*)key);
     printf("*v es %i \n",*(int*)value);
 
@@ -310,12 +350,44 @@ int main()
     m_eliminar(map, "vane", &fEliminarC, &fEliminarV);
 
     print_map(map);
-    */
+
 
     m_destruir(&map, &fEliminarC, &fEliminarV);
 
-    print_map(map);
+    print_map(map);*/
+///......................................................................................................
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    printf("\n");
 
+    printf("Programa \n");
+    //punteros encargados de guardar todo en la memoria dinamica
+    void * key;
+    void * value;
+
+    int indice_menu = 0;
+    tMapeo mapeo = leer_archivo(argv[1], &key, &value);
+
+    printf("Cantidad de apariciones ........... 1\n");
+    printf("Salir ............................. 2\n");
+
+    scanf(" %i",&indice_menu);
+    if(indice_menu==1){
+        recuperar_palabras(mapeo);
+    }
+
+
+
+    return 0;
 
 
 }

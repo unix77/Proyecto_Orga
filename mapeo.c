@@ -75,30 +75,33 @@ static tEntrada crear_entrada (tClave c, tValor v){
 }
 
 static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
-    printf("Adentro de buscar elemento\n");
+  //  printf("Adentro de buscar elemento\n");
     tPosicion posicion = l_primera(lista);
     tEntrada elem = NULL;
+    tClave clave_recuperada;
 
     int size = l_longitud(lista);
     int cantidad = 1; // CAMBIE, ERA cantidad = 0;
 
-    tClave clave_recuperada = ((tEntrada) l_recuperar(lista, posicion))->clave;// agarro la entrada de esa pos, y recupero su clave
-    //printf("La clave recuperada es %s\n", (char*)clave_recuperada);
-    while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
+    printf("CLAVE:::::::::::::::::::::::::::: %s \n",c);
+    if(size!=0){
 
-        printf("Adentro del while\n");
+        clave_recuperada = ((tEntrada) l_recuperar(lista, posicion))->clave;// agarro la entrada de esa pos, y recupero su clave
 
-        //elem = (tEntrada) l_siguiente(lista, posicion);
-        elem = l_recuperar(lista , l_siguiente(lista , posicion));
-        clave_recuperada = elem->clave;
-        cantidad++;
+        printf("La clave recuperada es {%s}\n", (char*) clave_recuperada);
 
+        while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
+
+            //elem = (tEntrada) l_siguiente(lista, posicion);
+            elem = l_recuperar(lista , l_siguiente(lista , posicion));
+            clave_recuperada = elem->clave;
+            cantidad++;
+        }
+
+        if((m->comparador(clave_recuperada,c) != 0)){
+            posicion = NULL;
+        }
     }
-
-    if((m->comparador(clave_recuperada,c) != 0)){
-        posicion = NULL;
-    }
-    printf("END de buscar elemento\n");
     return posicion;
 }
 
@@ -328,17 +331,14 @@ static void fEliminarEntrada (tElemento elemento){
 
 }
 
-/**
+/*
  Destruye el mapeo M, elimininando cada una de sus entradas.
  Las claves y valores almacenados en las entradas son eliminados mediante las funciones fEliminarC y fEliminarV.
-**/
+*/
 void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void *)){
-    ///.............
-    tEntrada aux = NULL;
-    ///.............
+
     printf("Inicio de destruir MAP\n");
     tLista lista_actual = NULL;
-
 
     fEliminarCGlobal = fEliminarC;
     fEliminarVGlobal = fEliminarV;
@@ -348,22 +348,11 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
 
     printf("AAAAAAAAAAAAAAAAAAAAAA\n");
 
-
-
-
     for(int i=0; i< longitud;i++){
         printf("BBBBBBBBBBBBBBB\n");
         lista_actual = (*m)->tabla_hash[i];
         printf("La longitud de la lista actual es %i \n", l_longitud(lista_actual));
         printf("CCCCCCCCCCCCCCCC\n");
-
-        ///.........................................................................................................................................///
-        for(int j = 0 ; j < l_longitud(lista_actual); j ++){}
-            aux =
-            m_eliminar((*m),)
-
-        }
-        ///.............................................................................................................................................
 
         l_destruir(&lista_actual, &fEliminarEntrada);
         printf("DDDDDDDDDDDDDDDDD\n");
@@ -371,7 +360,7 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
     printf("Sali del for de destruir mapeo \n");
     free((*m)->tabla_hash);
     free(*m);
-    */
+
 }
 
 
@@ -383,6 +372,15 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
 tValor m_recuperar(tMapeo m , tClave c){
     int indice = m->hash_code(c) % (m->longitud_tabla);
     tLista lista_actual = m->tabla_hash[indice];
-    tEntrada result = ((tEntrada) l_recuperar(lista_actual, buscar_Elemento(lista_actual,c,m)));// no convendria que buscar_elem, devuelva una tEntrada?
-    return result->valor;
+    tValor valor = NULL;
+    tPosicion posicion;
+    tEntrada result;
+    if(l_longitud(lista_actual)!=0){
+    posicion = buscar_Elemento(lista_actual,c,m);
+        if(posicion!=NULL){
+            result = ((tEntrada) l_recuperar(lista_actual, buscar_Elemento(lista_actual,c,m)));// no convendria que buscar_elem, devuelva una tEntrada?
+            valor = result->valor;
+        }
+    }
+    return valor;
 }

@@ -135,7 +135,7 @@ extern void l_destruir(tLista * l, void (*fEliminar)(tElemento)){
     if(aux->siguiente == NULL){
             printf("ZZZZZZZZZZZZ\n");
 
-            fEliminar((*l)->elemento); // (es un free sobre un NULL, es como no hacer nada)
+            //fEliminar((*l)->elemento); // (es un free sobre un NULL, es como no hacer nada)
             printf("XXXXXXXXXXXXXX\n");
             free((*l));     //libero la memoria donde esta la celda centinela en memoria
             printf("CCCCCCCCCCCCC\n");
