@@ -115,7 +115,7 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
      int * valor = NULL;
      tValor valor_recuperado = NULL;
 
-    crear_mapeo(&mapeo,13,&mStringHashDJB2, &mStringComparador);
+    crear_mapeo(&mapeo,3,&mStringHashDJB2, &mStringComparador);
     printf("dsadasdasdas \n");
 
      FILE * file = fopen(ruta, "r");
@@ -128,7 +128,6 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
             printf("La palabra leida desde archivo es -%s- \n", palabra);
 
             valor_recuperado = m_recuperar(mapeo,palabra);
-            //value =  valor_recuperado;
             if(valor_recuperado!=NULL){// si el valor de antes no es
                 printf("El valor recuperado es %i \n", *(int*)valor_recuperado);
                 *valor = increase((int*)valor_recuperado);
@@ -142,6 +141,9 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
             *c = palabra;
             *v = valor;
             m_insertar(mapeo,*c,*v);
+
+            print_map(mapeo);
+
             if(valor_recuperado!=NULL){
                 free(palabra);
                 free(valor);
@@ -153,7 +155,7 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
         }
         fclose(file);
     }
-    print_map(mapeo);
+
     return mapeo;
 }
 
