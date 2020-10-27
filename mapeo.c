@@ -75,7 +75,7 @@ static tEntrada crear_entrada (tClave c, tValor v){
 }
 
 static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
-  //  printf("Adentro de buscar elemento\n");
+    printf("Adentro de buscar elemento\n");
     tPosicion posicion = l_primera(lista);
     tEntrada elem = NULL;
     tClave clave_recuperada;
@@ -276,8 +276,6 @@ void fEliminarContenedor(void * entrada){
     free(entrada_a_eliminar);
 }
 
-
-
 //----------------------------------------------------------------------------------
 /**
  Elimina la entrada con clave C en M, si esta existe.
@@ -371,12 +369,13 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
 
 tValor m_recuperar(tMapeo m , tClave c){
     int indice = m->hash_code(c) % (m->longitud_tabla);
+    printf("Indice en RECUPERAR %i \n", indice);
     tLista lista_actual = m->tabla_hash[indice];
     tValor valor = NULL;
     tPosicion posicion;
     tEntrada result;
     if(l_longitud(lista_actual)!=0){
-    posicion = buscar_Elemento(lista_actual,c,m);
+        posicion = buscar_Elemento(lista_actual,c,m);
         if(posicion!=NULL){
             result = ((tEntrada) l_recuperar(lista_actual, buscar_Elemento(lista_actual,c,m)));// no convendria que buscar_elem, devuelva una tEntrada?
             valor = result->valor;

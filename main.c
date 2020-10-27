@@ -64,7 +64,7 @@ void print_list(tLista l, int i){
         tEntrada entrada;
         while(first != last){
             entrada = (tEntrada)l_recuperar(l, first);
-            printf("clave %s , valor %i \n",(char*)entrada->clave, *(int*)entrada->valor);
+            printf("clave %s , memoria de clave %i ,  valor %i , memoria de valor %i\n",(char*)entrada->clave, &(entrada->clave), *(int*)entrada->valor, &(entrada->valor));
             first = l_siguiente(l, first);
         }
     }
@@ -111,8 +111,10 @@ int increase(tValor v){
 
 static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
      tMapeo mapeo;
-     char * palabra = NULL;
+     char * palabra_leida = NULL;
+     char * palabra_a_insertar = NULL;
      int * valor = NULL;
+
      tValor valor_recuperado = NULL;
 
     crear_mapeo(&mapeo,13,&mStringHashDJB2, &mStringComparador);
@@ -120,34 +122,84 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
 
      FILE * file = fopen(ruta, "r");
      printf("dsadsdsDs \n");
+
+     palabra_leida = (char*)malloc(sizeof(char)*50);
+
      if (file) {
         while (!feof(file)){//mientras no este al final del archivo
-            palabra = (char*)malloc(sizeof(char)*50); // por cada palabra leida se hace malloc
-            valor = (int*)malloc(sizeof(int));
 
-            fscanf(file, "%s",palabra);
-            printf("La palabra leida desde archivo es -%s- \n", palabra);
+            fscanf(file, "%s",palabra_leida);
+            printf("La palabra leida desde archivo es -%s- \n", palabra_leida);
+            printf("La direccion de memoria en la que se guarda la palabra leida es -%i- \n", &palabra_leida);
 
-            valor_recuperado = m_recuperar(mapeo,palabra);
+            valor_recuperado = m_recuperar(mapeo,palabra_leida);
             //value =  valor_recuperado;
-            if(valor_recuperado!=NULL){// si el valor de antes no es
+            if(valor_recuperado != NULL){// si el valor de antes no es
                 printf("El valor recuperado es %i \n", *(int*)valor_recuperado);
                 *valor = increase((int*)valor_recuperado);
                 printf("el valor nuevo que se insertara es %i \n",*(int*)valor);
+                *c = palabra_leida;
+                *v = valor;
+
+                printf("el puntero v que se insertara apunta a %i \n",*(int*)*v);
+
             }else{
+                palabra_a_insertar = (char*)malloc(sizeof(char)*50); // por cada palabra leida se hace malloc
+                valor = (int*)malloc(sizeof(int));
+
+                printf("La direccion de memoria en la que se guarda la palabra A INSERTAR es -%i- \n", &(*(palabra_a_insertar)));
+
+
+                strcpy(palabra_a_insertar, palabra_leida);
+
+                printf("La palabra A INSERTAR es -%s- \n", (char*)palabra_a_insertar);
+
+                printf("La palabra NUEVA a insertar es  -%s- \n", (char*)palabra_a_insertar);
+
                 *valor = 1;
-                printf("La clave que se insertara es %i \n", *(int*)valor);
-                printf("Acabamos de insertar por primera vez la palabra\n");
+                printf("El valor que se insertara es %i \n", *(int*)valor);
+
+                *c = palabra_a_insertar;
+                *v = valor;
+                printf("el puntero v que se insertara en el ELSE apunta a %i \n",*(int*)*v);
             }
+
             //cambio el contenido de los punteros por referencia, sino no anda nada !!
-            *c = palabra;
-            *v = valor;
+            //*c = palabra_leida;
+
+
+            printf("FFFFFFFFFFFFFFFFFFFFF\n");
+
             m_insertar(mapeo,*c,*v);
+            printf("\n");
+            printf("\n");
+            printf("La direccion de memoria a al que apunta *c es %i \n",&(*c));
+            printf("La direccion de memoria a al que apunta *v es %i \n",&(*v));
+
+            printf("Acabamos de insertar por primera vez la palabra\n");
+            printf("la palabra que se va a insertar, afuera del while es %s \n", (char*)(*c));
+            printf("el valor que se va a insertar, afuera del while es %i \n", *(int*)(*v));
+
+
+
             printf("EL mapeo tiene %i elementos\n", mapeo->cantidad_elementos);
             printf("\n");
             printf("\n");
             printf("\n");
+
+
+            tValor vv = m_recuperar(mapeo,*c);
+
+            printf("\n");
+            printf("\n");
+            printf("\n");
+
+            printf("Valor RECUPERADO %i \n",*(int*)vv);
+
+            printf("--------------------------------------------------------------------\n");
+
         }
+        free(palabra_leida);
         fclose(file);
     }
     print_map(mapeo);
@@ -206,7 +258,6 @@ int main(int argc, char *argv [])
     char z[100] = "asd";
     //printf("El valor con hashDJB2 es %i\n" , (hashDJB2(z) % (new_map->longitud_tabla)));
 
-
     printf("El valor con mStringHashCode es %i\n" , mStringHashDJB2(z));
     char * a = "asd";
     char * b = "asd";
@@ -218,7 +269,6 @@ int main(int argc, char *argv [])
     char i1 = '1';
     char i2 = '2';
     char i3 = '3';
-
 
     char * clave = "cardo";
     char clave2 = "asd";
@@ -232,10 +282,6 @@ int main(int argc, char *argv [])
     /*
     m_insertar(new_map,clave1,vv1);
     printf("valor 1:  %s\n", (char*)m_recuperar(new_map,"cardo"));
-
-
-
-
 
     m_insertar(new_map,&clave2,&vv2);
     printf("valor 2:  %s\n", (char*)m_recuperar(new_map,"asd"));
@@ -385,9 +431,5 @@ int main(int argc, char *argv [])
         recuperar_palabras(mapeo);
     }
 
-
-
-    return 0;
-
-
+    //return 0;
 }
