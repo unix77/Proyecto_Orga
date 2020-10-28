@@ -93,6 +93,43 @@ static void fEliminarEntrada (tElemento elemento){
 static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
     printf("Adentro de buscar elemento\n");
     tPosicion posicion = l_primera(lista);
+    tPosicion pos_fin = l_fin(lista);
+    tEntrada elem = NULL;
+    tClave clave_recuperada;
+    int encontre = 0;// en caso de que no haya encontrado la clave ingresada por parametro
+
+    int size = l_longitud(lista);
+    //int cantidad = 1; // CAMBIE, ERA cantidad = 0;
+
+    printf("CLAVE:::::::::::::::::::::::::::: %s \n",c);
+    if(size != 0){
+        while(posicion != pos_fin && encontre == 0){
+            clave_recuperada = ((tEntrada) l_recuperar(lista, posicion))->clave;// agarro la entrada de esa pos, y recupero su clave
+
+            printf("La clave recuperada es {%s}\n", (char*) clave_recuperada);
+            printf("Las palabras son %i\n",m->comparador(clave_recuperada,c));
+
+            if(m->comparador(clave_recuperada,c) != 0){
+                posicion = l_siguiente(lista, posicion);
+            }
+            else{
+                encontre = 1;
+            }
+        }
+    }
+    if(encontre == 0){
+        posicion = NULL;
+    }
+    return posicion;
+}
+
+
+/*
+static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
+    printf("Adentro de buscar elemento\n");
+
+
+    tPosicion posicion = l_primera(lista);
     tEntrada elem = NULL;
     tClave clave_recuperada;
 
@@ -106,8 +143,11 @@ static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
 
         printf("La clave recuperada es {%s}\n", (char*) clave_recuperada);
 
-        while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
 
+        printf("Las palabras son %i\n",m->comparador(clave_recuperada,c));
+
+        while((m->comparador(clave_recuperada,c) != 0) && (cantidad != size)){
+            printf("INSIDE FJSDAKFJASDKFDSA \n");
             //elem = (tEntrada) l_siguiente(lista, posicion);
             elem = l_recuperar(lista , l_siguiente(lista , posicion));
             clave_recuperada = elem->clave;
@@ -120,7 +160,7 @@ static tPosicion buscar_Elemento(tLista lista, tClave c, tMapeo m){
     }
     return posicion;
 }
-
+*/
 static int primo (int numero){
     bool es_primo = true;
     int contador = 2;
@@ -169,6 +209,9 @@ void print_listt(tLista l, int i){
 }
 //----------------------------------------------------------------
 
+void fEliminarNada(tElemento e){
+
+}
 
 static void rehash(tMapeo mapeo, void (*fEliminar)(tElemento)){
     int nueva_dimension = proximo_primo(mapeo->longitud_tabla*2+1);
@@ -280,7 +323,7 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
         //printf("Caso de una lista vacia\n");
         if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
             printf("REHASH CON LISTA VACIA\n");
-            rehash(m,&fEliminarEntrada);
+            rehash(m,&fEliminarNada);
             m_insertar(m, c, v);
         }
         else{
@@ -304,7 +347,7 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
         }else {
             if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
                 printf("REHASH lista NO VACIA JJJJJJJJJJJJJJJJJJJJJJJJJJJJ\n");
-                rehash(m,&fEliminarEntrada);
+                rehash(m,&fEliminarNada);
                 m_insertar(m,c,v);
             }
             else{
@@ -411,6 +454,9 @@ tValor m_recuperar(tMapeo m , tClave c){
     tValor valor = NULL;
     tPosicion posicion;
     tEntrada result;
+
+    printf("La palabra en RECUPERAAAAAAAAAAAR es %s \n", (char*)c);
+
     if(l_longitud(lista_actual)!=0){
         posicion = buscar_Elemento(lista_actual,c,m);
         if(posicion!=NULL){

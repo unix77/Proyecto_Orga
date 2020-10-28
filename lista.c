@@ -125,31 +125,23 @@ extern void l_eliminar(tLista l, tPosicion p, void (*fEliminar)(tElemento)){
  Llamo recursivamente con el puntero al puntero tLista, y fEliminar. En este momento la lista ya tiene una
  celda menos que antes.
 
-
  Acotacion: borrar los "printf", son de ayuda para seguir el codigo
 **/
 extern void l_destruir(tLista * l, void (*fEliminar)(tElemento)){
     printf("Inicio de destruir\n");
-    tLista aux = (*l);//lo apunto a la primer posicion (centinela)
+    tPosicion aux = (*l);//lo apunto a la primer posicion (centinela)
 
     if(aux->siguiente == NULL){
-            printf("ZZZZZZZZZZZZ\n");
-
-            //fEliminar((*l)->elemento); // (es un free sobre un NULL, es como no hacer nada)
-            printf("XXXXXXXXXXXXXX\n");
             free((*l));     //libero la memoria donde esta la celda centinela en memoria
-            printf("CCCCCCCCCCCCC\n");
             (*l) = NULL;    //seteo el puntero a centinela, en NULL, porque ya no hay nada
-            printf("VVVVVVVVVVVVVVV\n");
-            l = NULL;       //seteo el puntero que apunta a una puntero que apunta a una celda, en NULL
             printf("Fin de cb destruir\n");
     }
     else{
         printf("Inicio del caso recursivo de destruir\n");
         fEliminar(aux->siguiente->elemento);
         (*l)->siguiente = aux->siguiente->siguiente;
-        aux->siguiente = NULL; // por formalidad
         free(aux->siguiente);
+        aux->siguiente = NULL; // por formalidad
         l_destruir(l, fEliminar);
         printf("Fin del caso recursivo de destruir\n");
     }

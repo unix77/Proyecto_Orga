@@ -105,8 +105,9 @@ void registrar(tClave * c, tValor * v){
 }
 
 int increase(tValor v){
-    int result = *((int *)v);
-    return (result + 1);
+    int result = *((int *)v)+1;
+    printf("RESUUUULT es %i \n",result);
+    return (result);
 }
 
 static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
@@ -125,16 +126,17 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
             valor = (int*)malloc(sizeof(int));
 
             fscanf(file, "%s",palabra);
+
             printf("La palabra leida desde archivo es -%s- \n", palabra);
 
             valor_recuperado = m_recuperar(mapeo,palabra);
-            if(valor_recuperado!=NULL){// si el valor de antes no es
+            if(valor_recuperado != NULL){// si el valor de antes no es
                 printf("El valor recuperado es %i \n", *(int*)valor_recuperado);
                 *valor = increase((int*)valor_recuperado);
-                printf("el valor nuevo que se insertara es %i \n",*(int*)valor);
+                printf("VALOR NUEVO %i\n", *valor);
             }else{
                 *valor = 1;
-                printf("La clave que se insertara es %i \n", *(int*)valor);
+                printf("El valor que se insertara es %i \n", *(int*)valor);
                 printf("Acabamos de insertar por primera vez la palabra\n");
             }
             //cambio el contenido de los punteros por referencia, sino no anda nada !!
@@ -144,7 +146,7 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
 
             print_map(mapeo);
 
-            if(valor_recuperado!=NULL){
+            if(valor_recuperado != NULL){
                 free(palabra);
                 free(valor);
             }
