@@ -5,7 +5,7 @@
 
 #define MAX(a,b)            (((a) > (b)) ? (a) : (b))
 #define MAXIMO_FACTOR_DE_CARGA 0.75
-#define FACTOR_DE_CARGA(cantidad_elementos,buckets)   ((cantidad_elementos+1)/buckets)
+#define FACTOR_DE_CARGA(cantidad_elementos,buckets)   (cantidad_elementos/buckets)
 
 typedef enum { false, true } bool;
 
@@ -131,42 +131,40 @@ static void fEliminarNada(){
 }
 
 tValor m_insertar(tMapeo m, tClave c, tValor v){
+    bool inserto = false;
     int indice = (m->hash_code(c)) % (m->longitud_tabla);
     tPosicion pos_aux = NULL;
     tEntrada entrada_aux = NULL;
     //lista_aux será un puntero a lo que sería tablaHash[0]
     tLista * lista_aux = (m->tabla_hash);
-    int factor_actual = FACTOR_DE_CARGA(m->cantidad_elementos, m->longitud_tabla);
+    int factor_actual;
     tEntrada nueva_entrada;
     tValor valor_a_retornar = NULL;
     //Con aritmetica de punteros, se ubica el puntero en la lista que indica el indice.
     tLista lista_actual = *(lista_aux+indice);
+
     if(l_longitud(lista_actual) == 0){
-        if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
-            rehash(m,&fEliminarNada);
-            m_insertar(m, c, v);
-        }
-        else{
+        nueva_entrada = crear_entrada(c, v);
+        l_insertar(lista_actual, l_primera(lista_actual),nueva_entrada);
+        m->cantidad_elementos++;
+        inserto = true;
+    }else {
+        pos_aux = buscar_elemento(lista_actual, c, m);
+        if(pos_aux == NULL){
             nueva_entrada = crear_entrada(c, v);
             l_insertar(lista_actual, l_primera(lista_actual),nueva_entrada);
             m->cantidad_elementos++;
-        }
-    }else{
-        pos_aux = buscar_elemento(lista_actual, c, m);
-        if(pos_aux != NULL){
+            inserto = true;
+        }else{
             entrada_aux = l_recuperar(lista_actual, pos_aux);
             valor_a_retornar = entrada_aux->valor;
             entrada_aux->valor = v;
-        }else {
-            if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
-                rehash(m,&fEliminarNada);
-                m_insertar(m,c,v);
-            }
-            else{
-                nueva_entrada = crear_entrada(c, v);
-                l_insertar(lista_actual, l_primera(lista_actual),nueva_entrada);
-                m->cantidad_elementos++;
-            }
+        }
+    }
+    if(inserto){
+        factor_actual= FACTOR_DE_CARGA(m->cantidad_elementos, m->longitud_tabla);
+        if(factor_actual>MAXIMO_FACTOR_DE_CARGA){
+            rehash(m,&fEliminarNada);
         }
     }
     return valor_a_retornar;
