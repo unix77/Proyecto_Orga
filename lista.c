@@ -108,9 +108,6 @@ void l_eliminar(tLista l, tPosicion p, void (*fEliminar)(tElemento)){
 }
 
 /**
- Destruye la lista L, elimininando cada una de sus celdas.
- Los elementos almacenados en las celdas son eliminados mediante la funci�n fEliminar.
- ------------------------------------------------------------------------------------
  Definiendo a L como la lista con todas sus posiciones y a L' como la lista sin la primer posición.
 
  (CASO BASE): Si la lista esta vacia se elimina la celda centinela.

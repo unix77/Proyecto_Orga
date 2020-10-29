@@ -35,14 +35,17 @@ int mStringComparador(void *e1, void *e2){
 
 void fEliminar(tElemento e){
     free(e);
+    e = NULL;
 }
 
 void fEliminarC(tClave c){
     free(c);
+    c = NULL;
 }
 
 void fEliminarV(tValor v){
     free(v);
+    v = NULL;
 }
 
 void print_list(tLista l, int i){
@@ -80,7 +83,6 @@ void print_map(tMapeo m){
     printf("FIN DE MAPEO\n");
 }
 
-
 int incrementar(tValor v){
     int resultado = *((int *)v)+1;
     return (resultado);
@@ -90,18 +92,19 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
      tMapeo mapeo;
      char * palabra = NULL;
      int * valor = NULL;
+     char * palabra_leida = NULL;
      tValor valor_recuperado = NULL;
-     crear_mapeo(&mapeo,3,&mStringHashDJB2, &mStringComparador);
+     crear_mapeo(&mapeo,11,&mStringHashDJB2, &mStringComparador);
      FILE * file = fopen(ruta, "r");
 
+     palabra_leida = (char*)malloc(sizeof(char)*150);
 
      if (file) {
-        while (!feof(file)){
-            palabra = (char*)malloc(sizeof(char)*50);
+        while(!ferror(file) && fscanf(file, "%s",palabra_leida) != EOF){
+            palabra = (char*)malloc(sizeof(char)*strlen(palabra_leida));
             valor = (int*)malloc(sizeof(int));
-            fscanf(file, "%s",palabra);
+            strcpy(palabra ,palabra_leida);
             valor_recuperado = m_recuperar(mapeo,palabra);
-
             if(valor_recuperado != NULL){
                 *valor = incrementar(valor_recuperado);
             }else{
@@ -121,8 +124,10 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
         printf("Ocurrió un error al intentar abrir el archivo parametrizado");
         exit(ERROR_APERTURA_ARCHIVO);
     }
+    free(palabra_leida);
     return mapeo;
 }
+
 
 static void recuperar_palabras(tMapeo mapeo){
     char palabra[50];
@@ -140,7 +145,6 @@ static void recuperar_palabras(tMapeo mapeo){
     }
 }
 
-
 int main(int argc, char *argv []){
     if(argc==2){
         //Punteros encargados de guardar todo en la memoria dinamica
@@ -149,6 +153,7 @@ int main(int argc, char *argv []){
         int indice_menu = 0;
         tMapeo mapeo = leer_archivo(argv[1], &key, &value);
         print_map(mapeo);
+
         do{
             printf("\nCantidad de apariciones ........... 1\n");
             printf("Salir ............................. 2\n");
@@ -156,9 +161,18 @@ int main(int argc, char *argv []){
             if(indice_menu==1){
                 recuperar_palabras(mapeo);
             }
-        }while(indice_menu == 1);
+            else if (indice_menu == 2){
+                m_destruir(&mapeo,fEliminarC,fEliminarV);
+                printf("El mapeo ha sido destruido\n");
+            }
+            else{
+                print_map(mapeo);
+                printf("Elija una de las opciones en pantalla\n");
+            }
+        }while(indice_menu != 2);
+
     }else{
-        printf("Error ante la invocación del programa");
+        printf("Error ante la invocacion del programa");
         exit(ERROR_PARAMETROS);
     }
     return 0;

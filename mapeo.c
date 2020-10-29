@@ -12,26 +12,8 @@ typedef enum { false, true } bool;
 void (*fEliminarCGlobal)(void *);
 void (*fEliminarVGlobal)(void *);
 
-
-/**
-ACOTACIONES GENERALES PARA LA IMPLEMENTACION DE MAPEO.C
-
-Para minimizar la cantidad de colisiones, la cantidad de listas (elementos del arreglo) deberia ser un numero primo (ej 11 : [0...10], etc).
-Esto provoca que al superar el factor de carga y tener que reacomodar los elementos del mapeo, la cantidad de listas debe ser :
-(numero primo(size viejo del mapeo) * 2 + 1), y a partir de ese valor, buscar el primer numero primo siguiente.
-Siguiendo el ejemplo del 11, 11*2 = 22 + 1 = 23(controlamos que sea primo, si no lo es, buscamos sumando de a 1).
-Todo eso lo va a hacer una nueva funcion "void mReacomodar(tMapeo m)", creo que debe ser un procedimiento, que va a estar en el main.c
---------------------------------------
-hashcode() nos hace caer en un indice "i" del arreglo (x ej la 3)-> luego comparo usando la funcion comparador() elemento a elemento(string x string)
-hasta llegar a encontrar el mismo string que quiero insertar ya presente en la lista(colision), o en caso de llegar al final, va a insertar en esa lista.
-(en ese caso ese String no estaba en la lista).
-
-*/
-
-
-
 void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(void *, void *)){
-    int maximo = MAX(1,ci);
+    int maximo = MAX(10,ci);
     *m = (tMapeo) malloc(sizeof(struct mapeo));
     if(m == NULL){
 		exit(MAP_ERROR_MEMORIA);
@@ -47,7 +29,6 @@ void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(v
     (*m)->comparador = fComparacion;
 }
 
-
 static tEntrada crear_entrada (tClave c, tValor v){
     tEntrada nueva_entrada = (tEntrada) malloc(sizeof(struct entrada));
     if(nueva_entrada == NULL){
@@ -57,7 +38,6 @@ static tEntrada crear_entrada (tClave c, tValor v){
     nueva_entrada->valor = v;
     return nueva_entrada;
 }
-
 
 static tPosicion buscar_elemento(tLista lista, tClave c, tMapeo m){
     tPosicion pos;
@@ -142,14 +122,13 @@ static void rehash(tMapeo mapeo, void (*fEliminar)(tElemento)){
                pos_original = l_siguiente(lista_anterior,pos_original);
            }
        }
-       //l_destruir(&lista_anterior,fEliminar);
+       l_destruir(&lista_anterior,fEliminar);
    }
 }
 
-
 static void fEliminarNada(){
-}
 
+}
 
 tValor m_insertar(tMapeo m, tClave c, tValor v){
     int indice = (m->hash_code(c)) % (m->longitud_tabla);
@@ -197,6 +176,7 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
 static void fEliminarContenedor(void * entrada){
     tEntrada entrada_a_eliminar = (tEntrada) entrada;
     free(entrada_a_eliminar);
+    entrada = NULL;
 }
 
 
@@ -225,6 +205,7 @@ static void fEliminarEntrada (tElemento elemento){
     fEliminarCGlobal(entrada->clave);
     fEliminarVGlobal(entrada->valor);
     free(entrada);
+    elemento = NULL;
 }
 
 void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void *)){
@@ -239,7 +220,9 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
         l_destruir(&lista_actual, &fEliminarEntrada);
     }
     free((*m)->tabla_hash);
+    (*m)->tabla_hash = NULL;
     free(*m);
+    (*m) = NULL;
 }
 
 
