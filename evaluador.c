@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "lista.h"
 #include "mapeo.h"
 #define LISTA_VACIA 99
@@ -21,7 +22,6 @@ int mStringHashDJB2(void * p){
     }
     return resultado;
 }
-
 
 /**
  * Funcion mStringComparador
@@ -88,6 +88,20 @@ int incrementar(tValor v){
     return (resultado);
 }
 
+void limpiar_palabra(char palabra[]) {
+    int longitud = strlen(palabra);
+    char * aux = palabra+1;
+
+    if(isalpha(palabra[0])==0){
+        strcpy(palabra, aux);
+    }
+
+    longitud = strlen(palabra);
+    if(isalpha(palabra[longitud-1])==0){
+        palabra[longitud-1] = '\0';
+    }
+}
+
 static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
      tMapeo mapeo;
      char * palabra = NULL;
@@ -101,6 +115,7 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
 
      if (file) {
         while(!ferror(file) && fscanf(file, "%s",palabra_leida) != EOF){
+            limpiar_palabra(palabra_leida);
             palabra = (char*)malloc(sizeof(char)*strlen(palabra_leida));
             valor = (int*)malloc(sizeof(int));
             strcpy(palabra ,palabra_leida);
@@ -128,7 +143,6 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
     return mapeo;
 }
 
-
 static void recuperar_palabras(tMapeo mapeo){
     char palabra[50];
     tValor cantidad_de_apariciones;
@@ -150,6 +164,7 @@ int main(int argc, char *argv []){
         //Punteros encargados de guardar todo en la memoria dinamica
         void * key;
         void * value;
+
         int indice_menu = 0;
         tMapeo mapeo = leer_archivo(argv[1], &key, &value);
         print_map(mapeo);

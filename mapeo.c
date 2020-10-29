@@ -108,10 +108,10 @@ static void rehash(tMapeo mapeo, void (*fEliminar)(tElemento)){
     }
     mapeo->longitud_tabla = nueva_dimension;
 
-   for(int i = 0; i<tamano_anterior; i++){
+   for(int i = 0; i< tamano_anterior; i++){
        lista_anterior = arreglo_anterior[i];
        //Por cada bucket del arreglo anterior se envia toda la información a su nuevo hash.
-       if(l_longitud(lista_anterior)>0){
+       if(l_longitud(lista_anterior) > 0){
             pos_original = l_primera(lista_anterior);
             pos_fin = l_fin(lista_anterior);
 
