@@ -4,15 +4,13 @@
 #include <ctype.h>
 #include "lista.h"
 #include "mapeo.h"
-#define LISTA_VACIA 99
 #define ERROR_APERTURA_ARCHIVO -1
 #define ERROR_PARAMETROS -2
 
 /**
- * Funcion mStringHashDJB2: es la funcion hash mas eficiente para manejar hash abierto, cuyos valores son strings.
- * Param: un puntero a void (el cual en nuestro caso es un puntero a un string/arreglo de caracteres)
+ * Calcula y retorna el codigo hash del valor parametrizado.
  */
-int mStringHashDJB2(void * p){
+int hash_string(void * p){
     int g = 31;
     int longitud = strlen(p);
     int resultado = 0;
@@ -24,71 +22,50 @@ int mStringHashDJB2(void * p){
 }
 
 /**
- * Funcion mStringComparador
- * Param: recibe 2 punteros a void, los cuales sabemos que en realdiad apuntan a listas de caracteres
- * Return: un entero -> 0 si los strings son iguales
- *                   -> -1 en caso contrario
+ * Funcion mStringComparador, utilizada por el mapeo, que compara 2 cadenas de caracteres
+ * Param: recibe 2 punteros a void, que apuntan a cadenas de caracteres,
+ * Return: -> 0 si los strings son iguales
 */
 int mStringComparador(void *e1, void *e2){
    return (strcmp(e1,e2));
 }
 
+/**
+ * Libera la memoria del elemento parametrizado.
+ */
 void fEliminar(tElemento e){
     free(e);
     e = NULL;
 }
 
+/**
+ * Libera la memoria de la clave parametrizada.
+ */
 void fEliminarC(tClave c){
     free(c);
     c = NULL;
 }
 
+/**
+ * Libera la memoria del valor parametrizado.
+ */
 void fEliminarV(tValor v){
     free(v);
     v = NULL;
 }
 
-void print_list(tLista l, int i){
-    if(l == NULL){
-        printf("La lista es invalida\n");
-        exit(LISTA_VACIA);
-    }
-    printf("Lista %i:\n", i);
-    int longitud_lista = l_longitud(l);
-    if(longitud_lista != 0){
-        tPosicion first = l_primera(l);
-        tPosicion last = l_fin(l);
-        tEntrada entrada;
-        while(first != last){
-            entrada = (tEntrada)l_recuperar(l, first);
-            printf("clave %s , valor %i \n",(char*)entrada->clave, *(int*)entrada->valor);
-            first = l_siguiente(l, first);
-        }
-    }
-    else{
-        printf("La lista esta vacia\n");
-    }
-    printf("\n");
-}
-
-void print_map(tMapeo m){
-    printf("Mapeo :\n");
-    tLista * tabla = m->tabla_hash;
-    int size_tabla = m->longitud_tabla;
-    tLista lista_actual = NULL;
-    for(int i = 0; i< size_tabla ; i++){
-        lista_actual = tabla[i];
-        print_list(lista_actual,i);
-    }
-    printf("FIN DE MAPEO\n");
-}
-
-int incrementar(tValor v){
+/**
+ * Incrementa en 1 el valor parametrizado.
+ */
+static int incrementar(tValor v){
     int resultado = *((int *)v)+1;
     return (resultado);
 }
 
-void limpiar_palabra(char palabra[]) {
+/**
+ * Se encarga de eliminar cualquier caracter que no sea una letra, de la primer y ultima posicion de la palabra.
+ */
+static void limpiar_palabra(char palabra[]) {
     int longitud = strlen(palabra);
     char * aux = palabra+1;
 
@@ -102,22 +79,33 @@ void limpiar_palabra(char palabra[]) {
     }
 }
 
+/**
+ * Crea y retorna un mapeo, generado a partir de un archivo cuya ruta fue parametrizada.
+ * Param: recibe 2 punteros por parametro, que representan la clave y valor a insertar.
+ */
 static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
+     //se utilizaran los punteros c y v para realizar la insercion en el mapeo
      tMapeo mapeo;
+     //se crean punteros auxiliares para facilitar el manejo de memoria dinamica
      char * palabra = NULL;
      int * valor = NULL;
+     //se encarga de reservar memoria para la palabra leida desde el archivo
      char * palabra_leida = NULL;
+     palabra_leida = (char*)malloc(sizeof(char)*150);
+
      tValor valor_recuperado = NULL;
-     crear_mapeo(&mapeo,11,&mStringHashDJB2, &mStringComparador);
+
+     crear_mapeo(&mapeo,11,&hash_string, &mStringComparador);
      FILE * file = fopen(ruta, "r");
 
-     palabra_leida = (char*)malloc(sizeof(char)*150);
 
      if (file) {
         while(!ferror(file) && fscanf(file, "%s",palabra_leida) != EOF){
             limpiar_palabra(palabra_leida);
+            //se reserva memoria para la palabra y el valor a insertar (en caso de que sea necesario)
             palabra = (char*)malloc(sizeof(char)*strlen(palabra_leida));
             valor = (int*)malloc(sizeof(int));
+            //copia la "palabra_leida", en "palabra" sin los caracteres sobrantes
             strcpy(palabra ,palabra_leida);
             valor_recuperado = m_recuperar(mapeo,palabra);
             if(valor_recuperado != NULL){
@@ -129,6 +117,7 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
             *v = valor;
 
             m_insertar(mapeo,*c,*v);
+            //en caso de que una entrada con la misma clave ya existia en el mapeo, se libera la memoria innecesaria
             if(valor_recuperado != NULL){
                 free(palabra);
                 free(valor_recuperado);
@@ -136,13 +125,17 @@ static tMapeo leer_archivo(char ruta[],tClave * c, tValor * v){
         }
         fclose(file);
     }else{
-        printf("Ocurrió un error al intentar abrir el archivo parametrizado");
+        printf("Ocurrio un error al intentar abrir el archivo parametrizado");
         exit(ERROR_APERTURA_ARCHIVO);
     }
+    //se libera memoria reservada por la palabra_leida (una vez que se leyo todo el archivo)
     free(palabra_leida);
     return mapeo;
 }
 
+/**
+ * A partir del mapeo parametrizado, muestra la cantidad de apariciones de la palabra leida por consola.
+ */
 static void recuperar_palabras(tMapeo mapeo){
     char palabra[50];
     tValor cantidad_de_apariciones;
@@ -159,6 +152,9 @@ static void recuperar_palabras(tMapeo mapeo){
     }
 }
 
+/**
+ * Maneja el menu del programa .
+ */
 int main(int argc, char *argv []){
     if(argc==2){
         //Punteros encargados de guardar todo en la memoria dinamica
@@ -167,7 +163,6 @@ int main(int argc, char *argv []){
 
         int indice_menu = 0;
         tMapeo mapeo = leer_archivo(argv[1], &key, &value);
-        print_map(mapeo);
 
         do{
             printf("\nCantidad de apariciones ........... 1\n");
@@ -181,7 +176,6 @@ int main(int argc, char *argv []){
                 printf("El mapeo ha sido destruido\n");
             }
             else{
-                print_map(mapeo);
                 printf("Elija una de las opciones en pantalla\n");
             }
         }while(indice_menu != 2);

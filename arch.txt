@@ -1,1 +1,10 @@
-hola chau chau chau hola chau chau chau hola chau chau chau hola chau chau chau hola chau chau chau 
+mplementaci´on
+Los archivos fuente principales se deben denominar lista.c, mapeo.c y evaluador.c.
+Es importante que durante la implementaci´on del proyecto se haga un uso cuidadoso y
+eficiente de la memoria, tanto para la reservar (malloc), como para liberar (free) el
+espacio asociado a variables y estructuras.
+Se deben respetar con exactitud los nombres de tipos y encabezados de funciones especificados en los archivos headers (“.h”). Los proyectos que no cumplan esta condici´on
+quedar´an autom´aticamente desaprobados.
+La compilaci´on debe realizarse con el flag -Wall habilitado. El c´odigo debe compilar sin
+advertencias de ning´un tipo.
+La copia o plagio del proyecto es una falta grave. Quien incurra en estos actos de deshonestidad acad´emica, desaprobar´a autom´aticamente el proyecto y el cu

@@ -9,7 +9,14 @@
 
 typedef enum { false, true } bool;
 
+/**
+ * Puntero a la funcion encargada de eliminar la clave.
+ */
 void (*fEliminarCGlobal)(void *);
+
+/**
+ * Puntero a la funcion encargada de eliminar el valor.
+ */
 void (*fEliminarVGlobal)(void *);
 
 void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(void *, void *)){
@@ -29,6 +36,9 @@ void crear_mapeo(tMapeo * m, int ci, int (*fHash)(void *), int (*fComparacion)(v
     (*m)->comparador = fComparacion;
 }
 
+/**
+ * Se encarga de crear una entrada en memoria, utilizando los parametros c (clave), v (valor).
+ */
 static tEntrada crear_entrada (tClave c, tValor v){
     tEntrada nueva_entrada = (tEntrada) malloc(sizeof(struct entrada));
     if(nueva_entrada == NULL){
@@ -39,7 +49,11 @@ static tEntrada crear_entrada (tClave c, tValor v){
     return nueva_entrada;
 }
 
-static tPosicion buscar_elemento(tLista lista, tClave c, tMapeo m){
+/**
+ * Busca una posicion en "lista" en la cual se encuentra (o no) la entrada con clave c.
+ * En caso de que no exista una entrada con dicha clave, retorna NULL.
+ */
+static tPosicion buscar_posicion(tLista lista, tClave c, tMapeo m){
     tPosicion pos;
     tPosicion pos_fin;
     tClave clave_recuperada;
@@ -66,6 +80,9 @@ static tPosicion buscar_elemento(tLista lista, tClave c, tMapeo m){
     return pos;
 }
 
+/**
+ * Retorna true en caso de que el numero recibido por parametro es primo.
+ */
 static int primo (int numero){
     bool es_primo = true;
     int contador = 2;
@@ -78,6 +95,9 @@ static int primo (int numero){
     return es_primo;
 }
 
+/**
+ * Retorna el proximo primo al numero parametrizado.
+ */
 static int proximo_primo(int numero){
     bool es_primo = false;
     int numero_a_probar = numero;
@@ -88,6 +108,9 @@ static int proximo_primo(int numero){
     return numero_a_probar;
 }
 
+/**
+ * Redimensiona la tabla hash del mapeo, y reorganiza las entradas de acuerdo a la nueva tabla.
+ */
 static void rehash(tMapeo mapeo, void (*fEliminar)(tElemento)){
     int nueva_dimension = proximo_primo(mapeo->longitud_tabla*2+1);
     int tamano_anterior = mapeo->longitud_tabla;
@@ -107,25 +130,30 @@ static void rehash(tMapeo mapeo, void (*fEliminar)(tElemento)){
         mapeo->tabla_hash[i] = nueva_lista;
     }
     mapeo->longitud_tabla = nueva_dimension;
-
-   for(int i = 0; i< tamano_anterior; i++){
+    //Por cada bucket del arreglo anterior se envia toda la información a su nuevo hash.
+    for(int i = 0; i< tamano_anterior; i++){
        lista_anterior = arreglo_anterior[i];
-       //Por cada bucket del arreglo anterior se envia toda la información a su nuevo hash.
        if(l_longitud(lista_anterior) > 0){
             pos_original = l_primera(lista_anterior);
             pos_fin = l_fin(lista_anterior);
 
-           while(pos_original != pos_fin){
+            while(pos_original != pos_fin){
                entrada = l_recuperar(lista_anterior,pos_original);
                indice = mapeo->hash_code(entrada->clave)% (mapeo->longitud_tabla);
                l_insertar(mapeo->tabla_hash[indice],l_primera(mapeo->tabla_hash[indice]),entrada);
                pos_original = l_siguiente(lista_anterior,pos_original);
            }
        }
+       //realiza el free para cada lista de la tabla hash antigua
        l_destruir(&lista_anterior,fEliminar);
    }
+   //libera la memoria de la tabla hash antigua
+   free(*arreglo_anterior);
 }
 
+/**
+ * No elimina nada, necesaria en caso de realizar rehash.
+ */
 static void fEliminarNada(){
 
 }
@@ -149,7 +177,7 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
         m->cantidad_elementos++;
         inserto = true;
     }else {
-        pos_aux = buscar_elemento(lista_actual, c, m);
+        pos_aux = buscar_posicion(lista_actual, c, m);
         if(pos_aux == NULL){
             nueva_entrada = crear_entrada(c, v);
             l_insertar(lista_actual, l_primera(lista_actual),nueva_entrada);
@@ -170,18 +198,19 @@ tValor m_insertar(tMapeo m, tClave c, tValor v){
     return valor_a_retornar;
 }
 
-
+/**
+ * Se encarga de eliminar unicamente la entrada parametrizada.
+ */
 static void fEliminarContenedor(void * entrada){
     tEntrada entrada_a_eliminar = (tEntrada) entrada;
     free(entrada_a_eliminar);
     entrada = NULL;
 }
 
-
 void m_eliminar(tMapeo m, tClave c, void (*fEliminarC)(void*), void (*fEliminarV)(void*)){
     int indice = m->hash_code(c) % (m->longitud_tabla);
     tLista lista_actual = m->tabla_hash[indice];
-    tPosicion posicion = buscar_elemento(lista_actual,c,m);
+    tPosicion posicion = buscar_posicion(lista_actual,c,m);
     tEntrada entrada;
     if(posicion!=NULL){
         entrada = (tEntrada) l_recuperar(lista_actual, posicion);
@@ -195,8 +224,8 @@ void m_eliminar(tMapeo m, tClave c, void (*fEliminarC)(void*), void (*fEliminarV
 }
 
 /**
-A partir de los punteros globales de eliminación de clave y valor
-previamente asignados se elimina una entrada.
+ *A partir de los punteros globales de eliminación de clave y valor
+ *previamente asignados se elimina una entrada.
 **/
 static void fEliminarEntrada (tElemento elemento){
     tEntrada entrada = (tEntrada) elemento;
@@ -223,7 +252,6 @@ void m_destruir(tMapeo * m, void (*fEliminarC)(void *), void (*fEliminarV)(void 
     (*m) = NULL;
 }
 
-
 tValor m_recuperar(tMapeo m , tClave c){
     int indice = m->hash_code(c) % (m->longitud_tabla);
     tLista lista_actual = m->tabla_hash[indice];
@@ -232,9 +260,9 @@ tValor m_recuperar(tMapeo m , tClave c){
     tEntrada entrada;
 
     if(l_longitud(lista_actual)!=0){
-        pos = buscar_elemento(lista_actual,c,m);
+        pos = buscar_posicion(lista_actual,c,m);
         if(pos!=NULL){
-            entrada = ((tEntrada) l_recuperar(lista_actual, buscar_elemento(lista_actual,c,m)));
+            entrada = ((tEntrada) l_recuperar(lista_actual, buscar_posicion(lista_actual,c,m)));
             valor = entrada->valor;
         }
     }
